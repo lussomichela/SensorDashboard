@@ -1,7 +1,7 @@
 # SensorDashboard
 Environmental Sensor Dashboard
 
-
+```text
 ├── MQTT_Simulator/          # Python Hardware Simulation
 │   ├── simulator.py         # Data generation logic
 │   └── MqttGateway.py       # MQTT Gateway
@@ -18,3 +18,4 @@ Environmental Sensor Dashboard
 │   ├── SensorModel.h
 ├── .gitignore               
 └── README.md                # Project documentation
+```
