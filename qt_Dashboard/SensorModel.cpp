@@ -74,7 +74,7 @@ void SensorModel::updateairQuality(float newValue) {
 
 void SensorModel::updatelightLevel(float newValue) {
     // Range: 0 - 1000 lux
-    if (newValue < 0.0f || newValue > 1000.0f) return;
+    if (newValue < 0.0f || newValue > 10000.0f) return;
 
     if (m_lightLevel != newValue) {
         m_lightLevel = newValue;

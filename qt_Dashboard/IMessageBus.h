@@ -12,3 +12,4 @@ public:
 };
 
 #endif // IMESSAGEBUS_H
+

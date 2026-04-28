@@ -8,44 +8,38 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(Qt6Mqtt_DIR "C:/Qt/6.11.0/mingw_64/lib/cmake/Qt6Mqtt")
 list(APPEND CMAKE_PREFIX_PATH "C:/Qt/6.11.0/mingw_64")
 
-
 find_package(Qt6 REQUIRED COMPONENTS
-     Mqtt
-     WebSockets
-     Quick
-     Core
-     Gui
-     Qml
-     QuickControls2
-     VirtualKeyboard
- )
-
-
-include_directories(appSensorDashboard PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    "C:/Qt/6.11.0/mingw_64/include"
-    "C:/Qt/6.11.0/mingw_64/include/QtMqtt"
+    Mqtt
+    WebSockets
+    Quick
+    Core
+    Gui
+    Qml
+    QuickControls2
+    Core5Compat
 )
-
 
 qt_standard_project_setup(REQUIRES 6.10)
 
 qt_add_executable(appSensorDashboard
     main.cpp
+    Main.qml
 )
 
 qt_add_qml_module(appSensorDashboard
     URI SensorDashboard
+    VERSION 1.0
     QML_FILES
-            Main.qml
+        Main.qml
+    SOURCES
+        IMessageBus.h
+        MqttMessageBus.h
+        MqttMessageBus.cpp
+
+        SensorModel.h
+        SensorModel.cpp
         SOURCES
-            SensorModel.h
-            SensorModel.cpp
-            IMessageBus.h
-            SOURCES MqttMessageBus.cpp
-            SOURCES MqttMessageBus.h
-            SOURCES RpmsgMessageBus.h
-    )
+)
 
 target_include_directories(appSensorDashboard PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
@@ -64,8 +58,6 @@ set_target_properties(appSensorDashboard PROPERTIES
     WIN32_EXECUTABLE TRUE
 )
 
-
-
 target_link_libraries(appSensorDashboard
     PRIVATE
     Qt6::Quick
@@ -73,10 +65,11 @@ target_link_libraries(appSensorDashboard
     Qt6::Gui
     Qt6::Qml
     Qt6::QuickControls2
-    Qt6::VirtualKeyboard
     Qt6::WebSockets
     Qt6::Mqtt
+    Qt6::Core5Compat
 )
+
 
 install(TARGETS appSensorDashboard
     BUNDLE DESTINATION .
