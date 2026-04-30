@@ -16,6 +16,8 @@ Environmental Sensor Dashboard
 │   ├── RpmsgMessageBus.h   
 │   ├── SensorModel.cpp      # Sensor data management logic
 │   ├── SensorModel.h
+├── Simulator_Ubuntu/
+│   ├── main.c
 ├── .gitignore               
 └── README.md                # Project documentation
 ```
