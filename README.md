@@ -7,13 +7,11 @@ Environmental Sensor Dashboard
 │   └── MqttGateway.py       # MQTT Gateway
 ├── qt_Dashboard/            # C++/QML Desktop Application
 │   ├── CMakeLists.txt  
-│   ├── IMessageBus.cpp        
 │   ├── IMessageBus.h        # Abstract Message Bus Interface
 │   ├── main.cpp        
 │   └── Main.qml             # Frontend UI definitions
 │   ├── MqttMessageBus.h     # MQTT Implementation
 │   ├── MqttMessageBus.cpp   
-│   ├── RpmsgMessageBus.h   
 │   ├── SensorModel.cpp      # Sensor data management logic
 │   ├── SensorModel.h
 ├── Simulator_Ubuntu/
