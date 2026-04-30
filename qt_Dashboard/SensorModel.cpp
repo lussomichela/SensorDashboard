@@ -36,12 +36,12 @@ void SensorModel::onDataReceived() {
         const SensorPayload* payload = reinterpret_cast<const SensorPayload*>(data.constData());
 
 
-        qDebug() << "VRING: ";
-        qDebug() << "Temperature:" << payload->temperature;
-        qDebug() << "Humidity: " << payload->humidity;
-        qDebug() << "Pressure: " << payload->pressure;
-        qDebug() << "airQuality: " << payload->airQuality;
-        qDebug() << "lightLevel: " << payload->lightLevel;
+        qDebug() << "VRING: "
+         << "Temperature:" << payload->temperature
+         << "Humidity: " << payload->humidity
+         << "Pressure: " << payload->pressure
+         << "airQuality: " << payload->airQuality
+         << "lightLevel: " << payload->lightLevel;
 
 
 

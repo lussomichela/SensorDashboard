@@ -1,308 +1,148 @@
 import QtQuick
-import QtQuick.VirtualKeyboard
 import QtQuick.Controls
 import QtQuick.Layouts
-import QtQuick.Shapes
-
 
 Window {
     id: window
-    width: 1000
-    height: 850
+    width: 1280
+    height: 900
     visible: true
-    title: qsTr("Sensor Dashboard")
-    color: "#f8f8ff" //ghostwhite
+    title: qsTr("Dashboard")
+    color: "#000000"
 
-    property int gaugeSize: 220
-    property color needleColor: "#000000" // black
-    property color colorLow: "#3366FF"   // blue
-    property color colorMid: "#008000"   // green
-    property color colorHigh: "#FF0000"  // red
+    component GaugeWidget : Item {
+        id: root
+        property real value: 0
+        property real min: 0
+        property real max: 100
+        property string title: ""
+        property string unit: ""
 
+        property var tickAngles: [-132, -92, -52, -16, 16, 52, 92, 132]
 
-    ColumnLayout {
-        anchors.centerIn: parent
-        spacing: 30
+        property real distance: 110
 
-        // first row
-        RowLayout {
-            Layout.alignment: Qt.AlignHCenter
-            spacing: 40
+        function getAngle(val) {
+            let clampedVal = Math.max(root.min, Math.min(root.max, val));
+            let ratio = (clampedVal - root.min) / (root.max - root.min);
+            let start = tickAngles[0];
+            let end = tickAngles[tickAngles.length - 1];
+            return start + (ratio * (end - start));
+        }
 
-            // TEMPERATURE
-            Rectangle {
-                width: gaugeSize; height: gaugeSize; radius: width / 2
-                color: "#f5f5f5"; //whitesmoke
-                border.color: "#808080"; border.width: 4
+        width: 320; height: 320
 
-                Shape {
-                    anchors.fill: parent; anchors.margins: 15; antialiasing: true
-                    ShapePath {
-                        fillColor: "transparent"; strokeColor: colorLow; strokeWidth: 10
-                        PathAngleArc {
-                            centerX: 95; centerY: 95;  //Defines the center of the arc
-                            radiusX: 85; radiusY: 85;  //Defines the radii of the ellipse of which the arc is part
-                            startAngle: -225;          //Defines the start angle of the arc
-                            sweepAngle: (30/70)*270 }} //Defines the sweep angle of the arc
-                    ShapePath {
-                        fillColor: "transparent"; strokeColor: colorMid; strokeWidth: 10
-                        PathAngleArc {
-                            centerX: 95; centerY: 95;
-                            radiusX: 85; radiusY: 85;
-                            startAngle: -225 + (30/70)*270; sweepAngle: (20/70)*270 }}
-                    ShapePath {
-                        fillColor: "transparent"; strokeColor: colorHigh; strokeWidth: 10
-                        PathAngleArc {
-                            centerX: 95; centerY: 95;
-                            radiusX: 85; radiusY: 85;
-                            startAngle: -225 + (50/70)*270; sweepAngle: (20/70)*270 }}
-                }
+        Image {
+            id: bg
+            source: "Gauge.png"
+            anchors.fill: parent
+            smooth: true
+        }
 
-                Repeater {
-                    model: 8
-                    Item {
-                        anchors.fill: parent; rotation:  index* (270/7) - 135
-                        Rectangle {
-                            anchors.horizontalCenter: parent.horizontalCenter;
-                            y: 14; width: 2; height: 15; color: "#000000"
-                        }
-                        Text {
-                            anchors.horizontalCenter: parent.horizontalCenter;
-                            y: 34; text: (index*10)-20; color: "#000000";
-                            font.pixelSize: 11; font.bold: true; rotation: -parent.rotation
-                        }
-                    }
-                }
+        // NUMERICAL SCALE
+        Repeater {
+            model: root.tickAngles.length
+            Item {
+                anchors.fill: parent
+                rotation: root.tickAngles[index]
+                Text {
+                    text: Math.round(root.min + (index * (root.max - root.min) / (root.tickAngles.length - 1)))
+                    color: "white"
+                    font.pixelSize: 18
+                    font.bold: true
+                    antialiasing: true
 
-                Item {
-                    anchors.fill: parent;
-                    rotation: (backend.temperature + 20) * (270/70) - 135
-                    Behavior on rotation {
-                        SpringAnimation {
-                            spring: 2.5; damping: 0.5
-                        }
-                    }
-                    Rectangle {
-                        width: 3; height: 85; color: needleColor;
-                        anchors.horizontalCenter: parent.horizontalCenter; anchors.bottom: parent.verticalCenter; antialiasing: true
-                    }
-                }
-
-                Rectangle {
-                    anchors.centerIn: parent;
-                    width: 14; height: 14; radius: 7; color: "#000000"
-                }
-
-                Column {
-                    anchors.bottom: parent.bottom; anchors.bottomMargin: 50; anchors.horizontalCenter: parent.horizontalCenter
-                    spacing: 2
-                    Text {
-                        text: "TEMPERATURE"; font.pixelSize: 11; font.bold: true;
-                        anchors.horizontalCenter: parent.horizontalCenter;
-                        color: backend.temperature > 30 ? colorHigh : (backend.temperature < 10 ? colorLow : colorMid)
-                    }
-                    Text {
-                        text: backend.temperature.toFixed(1) + " °C";
-                        font.pixelSize: 15; font.bold: true;
-                        anchors.horizontalCenter: parent.horizontalCenter; color: parent.children[0].color
-                    }
-                }
-            }
-
-            // HUMIDITY
-            Rectangle {
-                width: gaugeSize; height: gaugeSize; radius: width / 2
-                color: "#f5f5f5"; border.color: "#808080"; border.width: 4
-
-                Shape {
-                    anchors.fill: parent; anchors.margins: 15; antialiasing: true
-                    ShapePath { fillColor: "transparent"; strokeColor: colorLow; strokeWidth: 10
-                        PathAngleArc { centerX: 95; centerY: 95; radiusX: 85; radiusY: 85; startAngle: -225; sweepAngle: (30/100)*270 }}
-                    ShapePath { fillColor: "transparent"; strokeColor: colorMid; strokeWidth: 10
-                        PathAngleArc { centerX: 95; centerY: 95; radiusX: 85; radiusY: 85; startAngle: -225 + (30/100)*270; sweepAngle: (30/100)*270 }}
-                    ShapePath { fillColor: "transparent"; strokeColor: colorHigh; strokeWidth: 10
-                        PathAngleArc { centerX: 95; centerY: 95; radiusX: 85; radiusY: 85; startAngle: -225 + (60/100)*270; sweepAngle: (40/100)*270 }}
-                }
-
-                Repeater {
-                    model: 11
-                    Item {
-                        anchors.fill: parent; rotation: index * (270/10) - 135
-                        Rectangle { anchors.horizontalCenter: parent.horizontalCenter; y: 14; width: 2; height: 15; color: "#000000" }
-                        Text { anchors.horizontalCenter: parent.horizontalCenter; y: 34; text: index*10; color: "#000000"; font.pixelSize: 11; font.bold: true; rotation: -parent.rotation }
-                    }
-                }
-
-                Item {
-                    anchors.fill: parent; rotation: (backend.humidity * (270/100)) - 135
-                    Behavior on rotation { SpringAnimation { spring: 2.5; damping: 0.5 } }
-                    Rectangle { width: 3; height: 85; color: needleColor; anchors.horizontalCenter: parent.horizontalCenter; anchors.bottom: parent.verticalCenter; antialiasing: true }
-                }
-
-                Rectangle { anchors.centerIn: parent; width: 14; height: 14; radius: 7; color: "#000000" }
-
-                Column {
-                    anchors.bottom: parent.bottom; anchors.bottomMargin: 50; anchors.horizontalCenter: parent.horizontalCenter
-                    spacing: 2
-                    Text { text: "HUMIDITY"; font.pixelSize: 11; font.bold: true; anchors.horizontalCenter: parent.horizontalCenter; color: backend.humidity > 60 ? colorHigh : (backend.humidity < 30 ? colorLow : colorMid) }
-                    Text { text: backend.humidity.toFixed(0) + " %"; font.pixelSize: 15; font.bold: true; anchors.horizontalCenter: parent.horizontalCenter; color: parent.children[0].color }
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    y: parent.height / 2 - root.distance
+                    rotation: -parent.rotation
                 }
             }
         }
 
-        // Second row
+        // NEEDLE
+        Image {
+            id: needle
+            source: "gauge_needle.png"
+            height: parent.height * 0.46
+            fillMode: Image.PreserveAspectFit
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.bottom: parent.verticalCenter
+            antialiasing: true
+
+            transform: Rotation {
+                origin.x: needle.width / 2
+                origin.y: needle.height
+                angle: root.getAngle(root.value)
+
+                Behavior on angle {
+                    SpringAnimation { spring: 2.2; damping: 0.6; mass: 1.0 }
+                }
+            }
+        }
+
+
+        Rectangle {
+            width: 58; height: 58; radius: 29
+            color: "#111111"; border.color: "#222222"; border.width: 2
+            anchors.centerIn: parent
+        }
+
+        // TITLES AND UNITS
+        Column {
+            anchors.bottom: parent.bottom; anchors.bottomMargin: 40
+            anchors.horizontalCenter: parent.horizontalCenter
+            Text {
+                text: root.title; color: "#777777";
+                font.pixelSize: 10; font.bold: true; font.letterSpacing: 2;
+                anchors.horizontalCenter: parent.horizontalCenter
+            }
+            Text {
+                text: root.unit; color: "#ff8c00";
+                font.pixelSize: 15; font.bold: true;
+                anchors.horizontalCenter: parent.horizontalCenter
+            }
+        }
+    }
+
+    // LAYOUT
+    ColumnLayout {
+        anchors.centerIn: parent
+        spacing: 40
+
+        // FIRST ROW
         RowLayout {
+            spacing: 30
             Layout.alignment: Qt.AlignHCenter
-            spacing: 25
 
-            // PRESSURE
-            Rectangle {
-                width: gaugeSize; height: gaugeSize; radius: width/2
-                color: "#f5f5f5"; border.color: "#808080"; border.width: 4
-
-                Shape {
-                    anchors.fill: parent; anchors.margins: 15; antialiasing: true
-                    ShapePath { fillColor: "transparent"; strokeColor: colorLow; strokeWidth: 10
-                        PathAngleArc { centerX: 95; centerY: 95; radiusX: 85; radiusY: 85; startAngle: -225; sweepAngle: (100/300)*270 }}
-                    ShapePath { fillColor: "transparent"; strokeColor: colorMid; strokeWidth: 10
-                        PathAngleArc { centerX: 95; centerY: 95; radiusX: 85; radiusY: 85; startAngle: -225 + (100/300)*270; sweepAngle: (100/300)*270 }}
-                    ShapePath { fillColor: "transparent"; strokeColor: colorHigh; strokeWidth: 10
-                        PathAngleArc { centerX: 95; centerY: 95; radiusX: 85; radiusY: 85; startAngle: -225 + (200/300)*270; sweepAngle: (100/300)*270 }}
-                }
-
-                Repeater {
-                    model: 7
-                    Item {
-                        anchors.fill: parent; rotation: index * (270/6) - 135
-                        Rectangle { anchors.horizontalCenter: parent.horizontalCenter; y: 14; width: 2; height: 15; color: "#000000" }
-                        Text { anchors.horizontalCenter: parent.horizontalCenter; y: 35; text: 900+(index*50); color: "#000000"; font.pixelSize: 10; font.bold: true; rotation: -parent.rotation }
-                    }
-                }
-
-                Item {
-                    anchors.fill: parent; rotation: (backend.pressure - 900) * (270/300) - 135
-                    Behavior on rotation { SpringAnimation { spring: 2.5; damping: 0.5 } }
-                    Rectangle { width: 3; height: 85; color: needleColor; anchors.horizontalCenter: parent.horizontalCenter; anchors.bottom: parent.verticalCenter }
-                }
-
-                Rectangle { anchors.centerIn: parent; width: 14; height: 14; radius: 7; color: "#000000" }
-
-                Column {
-                    anchors.bottom: parent.bottom; anchors.bottomMargin: 50; anchors.horizontalCenter: parent.horizontalCenter
-                    spacing: 2
-                    Text { text: "PRESSURE"; font.pixelSize: 11; font.bold: true; anchors.horizontalCenter: parent.horizontalCenter; color: backend.pressure > 1100 ? colorHigh : (backend.pressure < 1000 ? colorLow : colorMid) }
-                    Text { text: backend.pressure.toFixed(0) + " hPa"; font.pixelSize: 15; font.bold: true; anchors.horizontalCenter: parent.horizontalCenter; color: parent.children[0].color }
-                }
+            GaugeWidget {
+                title: "TEMPERATURE"; unit: "°C"; min: -20; max: 50
+                value: backend.temperature
             }
-
-            // AIR QUALITY
-            Rectangle {
-                width: gaugeSize; height: gaugeSize; radius: width/2
-                color: "#f5f5f5"; border.color: "#808080"; border.width: 4
-
-                Shape {
-                    anchors.fill: parent; anchors.margins: 15; antialiasing: true
-                    ShapePath { fillColor: "transparent"; strokeColor: colorLow; strokeWidth: 10
-                        PathAngleArc { centerX: 95; centerY: 95; radiusX: 85; radiusY: 85; startAngle: -225; sweepAngle: (100/500)*270 }}
-                    ShapePath { fillColor: "transparent"; strokeColor: colorMid; strokeWidth: 10
-                        PathAngleArc { centerX: 95; centerY: 95; radiusX: 85; radiusY: 85; startAngle: -225 + (100/500)*270; sweepAngle: (200/500)*270 }}
-                    ShapePath { fillColor: "transparent"; strokeColor: colorHigh; strokeWidth: 10
-                        PathAngleArc { centerX: 95; centerY: 95; radiusX: 85; radiusY: 85; startAngle: -225 + (300/500)*270; sweepAngle: (200/500)*270 }}
-                }
-
-                Repeater {
-                    model: 6
-                    Item {
-                        anchors.fill: parent; rotation: index * (270/5) - 135
-                        Rectangle { anchors.horizontalCenter: parent.horizontalCenter; y: 14; width: 2; height: 15; color: "#000000" }
-                        Text { anchors.horizontalCenter: parent.horizontalCenter; y: 34; text: index*100; color: "#000000"; font.pixelSize: 11; font.bold: true; rotation: -parent.rotation }
-                    }
-                }
-
-                Item {
-                    anchors.fill: parent; rotation: (backend.airQuality * (270/500)) - 135
-                    Behavior on rotation { SpringAnimation { spring: 2.5; damping: 0.5 } }
-                    Rectangle { width: 3; height: 85; color: needleColor; anchors.horizontalCenter: parent.horizontalCenter; anchors.bottom: parent.verticalCenter }
-                }
-
-                Rectangle { anchors.centerIn: parent; width: 14; height: 14; radius: 7; color: "#000000" }
-
-                Column {
-                    anchors.bottom: parent.bottom; anchors.bottomMargin: 50; anchors.horizontalCenter: parent.horizontalCenter
-                    spacing: 2
-                    Text { text: "AIR QUALITY"; font.pixelSize: 11; font.bold: true; anchors.horizontalCenter: parent.horizontalCenter; color: backend.airQuality > 300 ? colorHigh : (backend.airQuality < 100 ? colorLow : colorMid) }
-                    Text { text: backend.airQuality.toFixed(0) + " AQI"; font.pixelSize: 15; font.bold: true; anchors.horizontalCenter: parent.horizontalCenter; color: parent.children[0].color }
-                }
+            GaugeWidget {
+                title: "HUMIDITY"; unit: "%"; min: 30; max: 100
+                value: backend.humidity
             }
+            GaugeWidget {
+                title: "PRESSURE"; unit: "HPA"; min: 900; max: 1250
+                value: backend.pressure
+            }
+        }
 
-            // LIGHT LEVEL
-            Rectangle {
-                width: gaugeSize; height: gaugeSize; radius: width/2
-                color: "#f5f5f5"; border.color: "#808080"; border.width: 4
+        // SECOND ROW
+        RowLayout {
+            spacing: 30
+            Layout.alignment: Qt.AlignHCenter
 
-                Shape {
-                    anchors.fill: parent; anchors.margins: 15; antialiasing: true
-                    ShapePath {
-                        fillColor: "transparent"; strokeColor: colorLow; strokeWidth: 10
-                        PathAngleArc {
-                            centerX: 95; centerY: 95; radiusX: 85; radiusY: 85; startAngle: -225; sweepAngle: (3000/10000)*270 }}
-                    ShapePath {
-                        fillColor: "transparent"; strokeColor: colorMid; strokeWidth: 10
-                        PathAngleArc {
-                            centerX: 95; centerY: 95; radiusX: 85; radiusY: 85; startAngle: -225 + (30/100)*270; sweepAngle: (4000/10000)*270 }}
-                    ShapePath {
-                        fillColor: "transparent"; strokeColor: colorHigh; strokeWidth: 10
-                        PathAngleArc {
-                            centerX: 95; centerY: 95; radiusX: 85; radiusY: 85; startAngle: -225 + (70/100)*270; sweepAngle: (3000/10000)*270 }}
-                }
-
-                Repeater {
-                    model: 11
-                    Item {
-                        anchors.fill: parent; rotation: index * (270/10) - 135
-                        Rectangle {
-                            anchors.horizontalCenter: parent.horizontalCenter; y: 14; width: 2; height: 15; color: "#000000"
-                        }
-                        Text {
-                            anchors.horizontalCenter: parent.horizontalCenter; y: 34; text: index*1000; color: "#000000";
-                            font.pixelSize: 11; font.bold: true; rotation: -parent.rotation
-                        }
-                    }
-                }
-
-                Item {
-                    anchors.fill: parent; rotation: (backend.lightLevel * (270/10000)) - 135
-                    Behavior on rotation {
-                        SpringAnimation {
-                            spring: 2.5; damping: 0.5
-                        }
-                    }
-                    Rectangle {
-                        width: 3; height: 85; color: needleColor;
-                        anchors.horizontalCenter: parent.horizontalCenter; anchors.bottom: parent.verticalCenter
-                    }
-                }
-
-                Rectangle {
-                    anchors.centerIn: parent;
-                    width: 14; height: 14; radius: 7; color: "#000000"
-                }
-
-                Column {
-                    anchors.bottom: parent.bottom; anchors.bottomMargin: 50; anchors.horizontalCenter: parent.horizontalCenter
-                    spacing: 2
-                    Text {
-                        text: "LIGHT LEVEL"; font.pixelSize: 11; font.bold: true;
-                        anchors.horizontalCenter: parent.horizontalCenter;
-                        color: backend.lightLevel > 7000 ? colorHigh : (backend.lightLevel < 3000 ? colorLow : colorMid)
-                    }
-                    Text {
-                        text: backend.lightLevel.toFixed(0) + " lux"; font.pixelSize: 15; font.bold: true;
-                        anchors.horizontalCenter: parent.horizontalCenter;
-                        color: parent.children[0].color
-                    }
-                }
+            GaugeWidget {
+                title: "AIR QUALITY"; unit: "AQI"; min: 0; max: 700
+                value: backend.airQuality
+            }
+            GaugeWidget {
+                title: "LIGHT LEVEL"; unit: "LUX"; min: 0; max: 7000
+                value: backend.lightLevel
             }
         }
     }
 }
+
+

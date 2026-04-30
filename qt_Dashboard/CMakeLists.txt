@@ -35,9 +35,11 @@ qt_add_qml_module(appSensorDashboard
         IMessageBus.h
         MqttMessageBus.h
         MqttMessageBus.cpp
-
         SensorModel.h
         SensorModel.cpp
+    RESOURCES
+        gauge_needle.png
+        Gauge.png
 )
 
 target_include_directories(appSensorDashboard PRIVATE
