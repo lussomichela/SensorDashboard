@@ -39,10 +39,10 @@ int main() {
     SensorPayload data;
     while (1) {
         data.temperature = (float)(rand() % 701) / 10.0f - 20.0f;
-        data.humidity = (float)(rand() % 1001) / 10.0f;
-        data.pressure = (float)(rand() % 3001) / 10.0f + 900.0f;
-        data.airQuality = (float)(rand() % 5001) / 10.0f;
-        data.lightLevel = (float)(rand() % 100001) / 10.0f;
+        data.humidity = (float)(rand() % 701) / 10.0f + 30.0f;
+        data.pressure = (float)(rand() % 3501) / 10.0f + 900.0f;
+        data.airQuality = (float)(rand() % 7001) / 10.0f;
+        data.lightLevel = (float)(rand() % 70001) / 10.0f;
 
         write(pipe, &data, sizeof(SensorPayload));
 
