@@ -4,6 +4,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Shapes
 
+
 Window {
     id: window
     width: 1000
@@ -17,6 +18,7 @@ Window {
     property color colorLow: "#3366FF"   // blue
     property color colorMid: "#008000"   // green
     property color colorHigh: "#FF0000"  // red
+
 
     ColumnLayout {
         anchors.centerIn: parent

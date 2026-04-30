@@ -38,7 +38,6 @@ qt_add_qml_module(appSensorDashboard
 
         SensorModel.h
         SensorModel.cpp
-        SOURCES
 )
 
 target_include_directories(appSensorDashboard PRIVATE

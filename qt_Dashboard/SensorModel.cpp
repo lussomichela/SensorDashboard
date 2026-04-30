@@ -1,41 +1,63 @@
 #include "SensorModel.h"
+#include <QTimer>
+
+
 
 SensorModel::SensorModel(QObject *parent) : QObject(parent) {
-    // Inizialization
-    m_temperature = 25.0f;
-    m_humidity = 45.0f;
-    m_pressure = 1000.0f;
-    m_airQuality = 50.0f;
-    m_lightLevel = 500.0f;
+    m_socket = new QLocalSocket(this);
+
+    connect(m_socket, &QLocalSocket::connected, this, [this]() {
+        qDebug() << ">>> Connected ";
+        m_socket->write("\x01", 1);
+        m_socket->flush();
+        m_socket->waitForBytesWritten(500);
+
+    });
+
+    connect(m_socket, &QLocalSocket::readyRead, this, &SensorModel::onDataReceived);
+    connect(m_socket, &QLocalSocket::errorOccurred, this, [this](QLocalSocket::LocalSocketError error) {
+        qDebug() << ">>> Pipe State:" << m_socket->errorString();
+
+        QTimer::singleShot(2000, this, [this]() {
+            if (m_socket->state() == QLocalSocket::UnconnectedState) {
+                m_socket->connectToServer("\\\\.\\pipe\\rpmsg_pipe");
+            }
+        });
+    });
+
+    m_socket->connectToServer("\\\\.\\pipe\\rpmsg_pipe");
 }
 
-void SensorModel::onMessageReceived(const QString& topic, const QByteArray& message) {
-    bool ok;
-    float value = message.toFloat(&ok);
 
-    if (!ok) return;
+void SensorModel::onDataReceived() {
 
-    if (topic == "sensor/temperature") {
-        updateTemperature(value);
-    } else if (topic == "sensor/humidity") {
-        updateHumidity(value);
-    } else if (topic == "sensor/pressure") {
-        updatePressure(value);
-    } else if (topic == "sensor/airQuality") {
-        updateairQuality(value);
-    } else if (topic == "sensor/lightLevel") {
-        updatelightLevel(value);
+    while (m_socket->bytesAvailable() >= sizeof(SensorPayload)) {
+        QByteArray data = m_socket->read(sizeof(SensorPayload));
+        const SensorPayload* payload = reinterpret_cast<const SensorPayload*>(data.constData());
+
+
+        qDebug() << "VRING: ";
+        qDebug() << "Temperature:" << payload->temperature;
+        qDebug() << "Humidity: " << payload->humidity;
+        qDebug() << "Pressure: " << payload->pressure;
+        qDebug() << "airQuality: " << payload->airQuality;
+        qDebug() << "lightLevel: " << payload->lightLevel;
+
+
+
+        updateTemperature(payload->temperature);
+        updateHumidity(payload->humidity);
+        updatePressure(payload->pressure);
+        updateairQuality(payload->airQuality);
+        updatelightLevel(payload->lightLevel);
     }
 }
 
-
-
-
+void SensorModel::handleSocketError(QLocalSocket::LocalSocketError error) {
+    qDebug() << "IPC Socket Error:" << m_socket->errorString();
+}
 
 void SensorModel::updateTemperature(float newValue) {
-    //Range: -50 +50 °C
-    if (newValue < -50.0f || newValue > 50.0f) return;
-
     if (m_temperature != newValue) {
         m_temperature = newValue;
         emit temperatureChanged();
@@ -43,9 +65,6 @@ void SensorModel::updateTemperature(float newValue) {
 }
 
 void SensorModel::updateHumidity(float newValue) {
-    //Range: 0 100 %
-    if (newValue < 0.0f || newValue > 100.0f) return;
-
     if (m_humidity != newValue) {
         m_humidity = newValue;
         emit humidityChanged();
@@ -53,9 +72,6 @@ void SensorModel::updateHumidity(float newValue) {
 }
 
 void SensorModel::updatePressure(float newValue) {
-    // Range: 900 - 1200 hPa
-    if (newValue < 900.0f || newValue > 1200.0f) return;
-
     if (m_pressure != newValue) {
         m_pressure = newValue;
         emit pressureChanged();
@@ -63,9 +79,6 @@ void SensorModel::updatePressure(float newValue) {
 }
 
 void SensorModel::updateairQuality(float newValue) {
-    // Range: 0 - 500 AQI
-    if (newValue < 0.0f || newValue > 500.0f) return;
-
     if (m_airQuality != newValue) {
         m_airQuality = newValue;
         emit airQualityChanged();
@@ -73,14 +86,8 @@ void SensorModel::updateairQuality(float newValue) {
 }
 
 void SensorModel::updatelightLevel(float newValue) {
-    // Range: 0 - 1000 lux
-    if (newValue < 0.0f || newValue > 10000.0f) return;
-
     if (m_lightLevel != newValue) {
         m_lightLevel = newValue;
         emit lightLevelChanged();
     }
 }
-
-
-
