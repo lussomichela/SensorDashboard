@@ -1,49 +1,43 @@
 #include "SensorModel.h"
 #include <QTimer>
 
-
-
 SensorModel::SensorModel(QObject *parent) : QObject(parent) {
-    m_socket = new QLocalSocket(this);
+    m_tcpServer = new QTcpServer(this);
+    m_clientSocket = nullptr;
 
-    connect(m_socket, &QLocalSocket::connected, this, [this]() {
-        qDebug() << ">>> Connected ";
-        m_socket->write("\x01", 1);
-        m_socket->flush();
-        m_socket->waitForBytesWritten(500);
+    if (!m_tcpServer->listen(QHostAddress::Any, 1234)) {
+        qDebug() << "Server Error:" << m_tcpServer->errorString();
+    } else {
+        qDebug() << "Listening on port 1234...";
+    }
 
-    });
+    connect(m_tcpServer, &QTcpServer::newConnection, this, [this]() {
+        m_clientSocket = m_tcpServer->nextPendingConnection();
+        qDebug() << ">>> Bridge Connected";
 
-    connect(m_socket, &QLocalSocket::readyRead, this, &SensorModel::onDataReceived);
-    connect(m_socket, &QLocalSocket::errorOccurred, this, [this](QLocalSocket::LocalSocketError error) {
-        qDebug() << ">>> Pipe State:" << m_socket->errorString();
+        connect(m_clientSocket, &QTcpSocket::readyRead, this, &SensorModel::onDataReceived);
 
-        QTimer::singleShot(2000, this, [this]() {
-            if (m_socket->state() == QLocalSocket::UnconnectedState) {
-                m_socket->connectToServer("\\\\.\\pipe\\rpmsg_pipe");
-            }
+        connect(m_clientSocket, &QTcpSocket::disconnected, this, [this]() {
+            qDebug() << ">>> Bridge Disconnected";
+            m_clientSocket->deleteLater();
+            m_clientSocket = nullptr;
         });
     });
-
-    m_socket->connectToServer("\\\\.\\pipe\\rpmsg_pipe");
 }
 
-
 void SensorModel::onDataReceived() {
+    if (!m_clientSocket) return;
 
-    while (m_socket->bytesAvailable() >= sizeof(SensorPayload)) {
-        QByteArray data = m_socket->read(sizeof(SensorPayload));
+    while (m_clientSocket->bytesAvailable() >= sizeof(SensorPayload)) {
+        QByteArray data = m_clientSocket->read(sizeof(SensorPayload));
         const SensorPayload* payload = reinterpret_cast<const SensorPayload*>(data.constData());
 
-
-        qDebug() << "VRING: ";
+        qDebug() << "VRING Received:";
         qDebug() << "Temperature:" << payload->temperature;
-        qDebug() << "Humidity: " << payload->humidity;
-        qDebug() << "Pressure: " << payload->pressure;
-        qDebug() << "airQuality: " << payload->airQuality;
-        qDebug() << "lightLevel: " << payload->lightLevel;
-
-
+        qDebug() << "Humidity:" << payload->humidity;
+        qDebug() << "Pressure:" << payload->pressure;
+        qDebug() << "AirQuality:" << payload->airQuality;
+        qDebug() << "LightLevel:" << payload->lightLevel;
 
         updateTemperature(payload->temperature);
         updateHumidity(payload->humidity);
@@ -51,10 +45,6 @@ void SensorModel::onDataReceived() {
         updateairQuality(payload->airQuality);
         updatelightLevel(payload->lightLevel);
     }
-}
-
-void SensorModel::handleSocketError(QLocalSocket::LocalSocketError error) {
-    qDebug() << "IPC Socket Error:" << m_socket->errorString();
 }
 
 void SensorModel::updateTemperature(float newValue) {

@@ -2,24 +2,22 @@
 #define SENSORMODEL_H
 
 #include <QObject>
-#include <QDebug>
-#include <QQmlEngine>
-#include <QLocalSocket>
+#include <QTcpServer>
+#include <QTcpSocket>
 
-//main.c
 #pragma pack(1)
-struct SensorPayload {
+typedef struct {
     float temperature;
     float humidity;
     float pressure;
     float airQuality;
     float lightLevel;
-};
+} SensorPayload;
 #pragma pack()
 
 class SensorModel : public QObject {
     Q_OBJECT
-    QML_ELEMENT
+
     Q_PROPERTY(float temperature READ temperature NOTIFY temperatureChanged)
     Q_PROPERTY(float humidity READ humidity NOTIFY humidityChanged)
     Q_PROPERTY(float pressure READ pressure NOTIFY pressureChanged)
@@ -28,17 +26,31 @@ class SensorModel : public QObject {
 
 public:
     explicit SensorModel(QObject *parent = nullptr);
+
     float temperature() const { return m_temperature; }
     float humidity() const { return m_humidity; }
     float pressure() const { return m_pressure; }
     float airQuality() const { return m_airQuality; }
     float lightLevel() const { return m_lightLevel; }
 
-    void updateTemperature(float newValue);
-    void updateHumidity(float newValue);
-    void updatePressure(float newValue);
-    void updateairQuality(float newValue);
-    void updatelightLevel(float newValue);
+private slots:
+    void onDataReceived();
+
+private:
+    QTcpServer* m_tcpServer;
+    QTcpSocket* m_clientSocket;
+
+    float m_temperature = 0;
+    float m_humidity = 0;
+    float m_pressure = 0;
+    float m_airQuality = 0;
+    float m_lightLevel = 0;
+
+    void updateTemperature(float v);
+    void updateHumidity(float v);
+    void updatePressure(float v);
+    void updateairQuality(float v);
+    void updatelightLevel(float v);
 
 signals:
     void temperatureChanged();
@@ -46,24 +58,6 @@ signals:
     void pressureChanged();
     void airQualityChanged();
     void lightLevelChanged();
-
-private slots:
-    void onDataReceived();
-    void handleSocketError(QLocalSocket::LocalSocketError error);
-
-private:
-    float m_temperature = 0.0;
-    float m_humidity = 0.0;
-    float m_pressure = 0.0;
-    float m_airQuality = 0.0;
-    float m_lightLevel = 0.0;
-
-    QLocalSocket *m_socket;
 };
 
 #endif
-
-
-
-
-

@@ -5,18 +5,19 @@ project(SensorDashboard VERSION 0.1 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(Qt6Mqtt_DIR "C:/Qt/6.11.0/mingw_64/lib/cmake/Qt6Mqtt")
-list(APPEND CMAKE_PREFIX_PATH "C:/Qt/6.11.0/mingw_64")
+set(Qt6Mqtt_DIR "C:/Qt_n/6.11.0/mingw_64/lib/cmake/Qt6Mqtt")
+list(APPEND CMAKE_PREFIX_PATH "C:/Qt_n/6.11.0/mingw_64")
 
 find_package(Qt6 REQUIRED COMPONENTS
-    Mqtt
+    #Mqtt
     WebSockets
     Quick
     Core
     Gui
     Qml
     QuickControls2
-    Core5Compat
+    #Core5Compat
+    Network
 )
 
 qt_standard_project_setup(REQUIRES 6.10)
@@ -33,17 +34,20 @@ qt_add_qml_module(appSensorDashboard
         Main.qml
     SOURCES
         IMessageBus.h
-        MqttMessageBus.h
-        MqttMessageBus.cpp
+        #MqttMessageBus.h
+        #MqttMessageBus.cpp
 
         SensorModel.h
         SensorModel.cpp
+    RESOURCES
+        gauge_needle.png
+        Gauge.png
 )
 
 target_include_directories(appSensorDashboard PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
-    "C:/Qt/6.11.0/mingw_64/include"
-    "C:/Qt/6.11.0/mingw_64/include/QtMqtt"
+    "C:/Qt_n/6.11.0/mingw_64/include"
+    "C:/Qt_n/6.11.0/mingw_64/include/QtMqtt"
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
@@ -65,8 +69,9 @@ target_link_libraries(appSensorDashboard
     Qt6::Qml
     Qt6::QuickControls2
     Qt6::WebSockets
-    Qt6::Mqtt
-    Qt6::Core5Compat
+    #Qt6::Mqtt
+    #Qt6::Core5Compat
+    Qt6::Network
 )
 
 
