@@ -1,0 +1,22 @@
+/ {
+	chosen {
+		zephyr,ipc_shm = &rpmsg_shm;
+	};
+
+	reserved-memory {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		ranges;
+
+		rpmsg_shm: memory@1000000 {
+			reg = <0x01000000 0x00100000>;
+		};
+	};
+
+	ipc0: ipc@1000000 {
+		compatible = "zephyr,ipc-shm-backend";
+		reg = <0x01000000 0x1000>; 
+		role = "host";
+		status = "okay";
+	};
+};
