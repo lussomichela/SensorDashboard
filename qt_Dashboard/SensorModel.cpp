@@ -25,25 +25,35 @@ SensorModel::SensorModel(QObject *parent) : QObject(parent) {
     });
 }
 
+
 void SensorModel::onDataReceived() {
     if (!m_clientSocket) return;
 
-    while (m_clientSocket->bytesAvailable() >= sizeof(SensorPayload)) {
-        QByteArray data = m_clientSocket->read(sizeof(SensorPayload));
-        const SensorPayload* payload = reinterpret_cast<const SensorPayload*>(data.constData());
+    while (m_clientSocket->canReadLine()) {
+        QByteArray line = m_clientSocket->readLine().trimmed();
+        QString dataString = QString::fromUtf8(line);
 
-        qDebug() << "VRING Received:";
-        qDebug() << "Temperature:" << payload->temperature;
-        qDebug() << "Humidity:" << payload->humidity;
-        qDebug() << "Pressure:" << payload->pressure;
-        qDebug() << "AirQuality:" << payload->airQuality;
-        qDebug() << "LightLevel:" << payload->lightLevel;
+        if (dataString.startsWith("DATA|")) {
+            QStringList parts = dataString.split('|');
 
-        updateTemperature(payload->temperature);
-        updateHumidity(payload->humidity);
-        updatePressure(payload->pressure);
-        updateairQuality(payload->airQuality);
-        updatelightLevel(payload->lightLevel);
+            if (parts.size() >= 6) {
+                bool ok;
+                float temp = parts[1].toFloat(&ok);
+                float hum = parts[2].toFloat();
+                float press = parts[3].toFloat();
+                float air = parts[4].toFloat();
+                float light = parts[5].toFloat();
+
+                if (ok) {
+                    qDebug() << "Parsed Values - Temp:" << temp << "Hum:" << hum;
+                    updateTemperature(temp);
+                    updateHumidity(hum);
+                    updatePressure(press);
+                    updateairQuality(air);
+                    updatelightLevel(light);
+                }
+            }
+        }
     }
 }
 
@@ -81,3 +91,4 @@ void SensorModel::updatelightLevel(float newValue) {
         emit lightLevelChanged();
     }
 }
+
