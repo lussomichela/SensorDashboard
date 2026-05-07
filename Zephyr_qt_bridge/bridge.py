@@ -12,16 +12,16 @@ def start_bridge():
     try:
         qt_app = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         qt_app.connect((WINDOWS_IP, DASHBOARD_PORT))
-        print(">>> Connected to Windows Dashboard")
+        print("Connected to Windows Dashboard")
     except Exception as e:
-        print(f"ERROR: Could not connect to Dashboard: {e}")
+        print(f"ERROR Could not connect to Dashboard: {e}")
         return
 
     # Connection to the QEMU Unix Socket (RPMsg Channel)
     try:
         qemu_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         qemu_socket.connect(QEMU_SOCKET)
-        print(">>> Connected to QEMU (RPMsg Channel)")
+        print("Connected to QEMU (RPMsg Channel)")
     except Exception as e:
         print(f"ERROR: Could not connect to QEMU socket: {e}")
         qt_app.close()
@@ -32,14 +32,14 @@ def start_bridge():
 
     while True:
         try:
-            raw_data = qemu_socket.recv(1024)
+            received_raw_data = qemu_socket.recv(1024)
             
-            if not raw_data:
+            if not received_raw_data:
                 print(">>> QEMU closed the connection.")
                 break
 
-            chunk = raw_data.decode('utf-8', errors='ignore')
-            data_buffer += chunk
+            raw_data = received_raw_data.decode('utf-8', errors='ignore')
+            data_buffer += raw_data
 
             while "\n" in data_buffer:
                 line, data_buffer = data_buffer.split("\n", 1)
@@ -58,19 +58,19 @@ def start_bridge():
                     # Local terminal debug 
                     parts = clean_line.split('|')
                     if len(parts) >= 6:
-                        print(f"  [Parsed] Temp: {parts[1]}, Hum: {parts[2]}, Press: {parts[3]}")
+                        print(f"Parsed -> Temperature: {parts[1]}, Humidity: {parts[2]}, Pressure: {parts[3]}, Air Quality: {parts[4]}, Light Level: {parts[5]}")
 
         except KeyboardInterrupt:
-            print("\nStopping bridge...")
+            print("\nStopping bridge")
             break
         except Exception as e:
-            print(f"Loop Error: {e}")
+            print(f"Error: {e}")
             break
 
     # Resource cleanup
     qemu_socket.close()
     qt_app.close()
-    print(">>> Bridge closed.")
+    print("Bridge closed")
 
 if __name__ == "__main__":
     start_bridge()
