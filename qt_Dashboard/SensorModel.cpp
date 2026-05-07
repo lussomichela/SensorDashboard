@@ -38,19 +38,19 @@ void SensorModel::onDataReceived() {
 
             if (parts.size() >= 6) {
                 bool ok;
-                float temp = parts[1].toFloat(&ok);
-                float hum = parts[2].toFloat();
-                float press = parts[3].toFloat();
-                float air = parts[4].toFloat();
-                float light = parts[5].toFloat();
+                float Temperature = parts[1].toFloat(&ok);
+                float Humidity = parts[2].toFloat();
+                float Pressure = parts[3].toFloat();
+                float airQuality = parts[4].toFloat();
+                float lightLevel = parts[5].toFloat();
 
                 if (ok) {
-                    qDebug() << "Parsed Values - Temp:" << temp << "Hum:" << hum;
-                    updateTemperature(temp);
-                    updateHumidity(hum);
-                    updatePressure(press);
-                    updateairQuality(air);
-                    updatelightLevel(light);
+                    qDebug() << "Temperature:" << Temperature << "Humidity:" << Humidity << "Pressure:" << Pressure << "airQuality:" << airQuality << "lightLevel:" << lightLevel;
+                    updateTemperature(Temperature);
+                    updateHumidity(Humidity);
+                    updatePressure(Pressure);
+                    updateairQuality(airQuality);
+                    updatelightLevel(lightLevel);
                 }
             }
         }
