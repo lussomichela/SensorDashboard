@@ -18,6 +18,7 @@ Environmental Sensor Dashboard
 │   ├── bridge.py
 │   ├── CMakeLists.txt
 │   ├── prj.conf
+│   ├── instructions.txt
 ├── .gitignore               
 └── README.md                # Project documentation
 ```
