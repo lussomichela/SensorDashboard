@@ -9,14 +9,12 @@ set(Qt6Mqtt_DIR "C:/Qt_n/6.11.0/mingw_64/lib/cmake/Qt6Mqtt")
 list(APPEND CMAKE_PREFIX_PATH "C:/Qt_n/6.11.0/mingw_64")
 
 find_package(Qt6 REQUIRED COMPONENTS
-    #Mqtt
     WebSockets
     Quick
     Core
     Gui
     Qml
     QuickControls2
-    #Core5Compat
     Network
 )
 
@@ -33,10 +31,6 @@ qt_add_qml_module(appSensorDashboard
     QML_FILES
         Main.qml
     SOURCES
-        IMessageBus.h
-        #MqttMessageBus.h
-        #MqttMessageBus.cpp
-
         SensorModel.h
         SensorModel.cpp
     RESOURCES
