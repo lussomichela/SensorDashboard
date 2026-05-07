@@ -2,22 +2,22 @@
 Environmental Sensor Dashboard
 
 ```text
-├── MQTT_Simulator/          # Python Hardware Simulation
-│   ├── simulator.py         # Data generation logic
-│   └── MqttGateway.py       # MQTT Gateway
+
 ├── qt_Dashboard/            # C++/QML Desktop Application
-│   ├── CMakeLists.txt  
-│   ├── IMessageBus.cpp        
-│   ├── IMessageBus.h        # Abstract Message Bus Interface
+│   ├── CMakeLists.txt
+│   ├── Gauge.png
+│   ├── gauge_needle.png
 │   ├── main.cpp        
-│   └── Main.qml             # Frontend UI definitions
-│   ├── MqttMessageBus.h     # MQTT Implementation
-│   ├── MqttMessageBus.cpp   
-│   ├── RpmsgMessageBus.h   
+│   ├── Main.qml             # Frontend UI definitions
 │   ├── SensorModel.cpp      # Sensor data management logic
 │   ├── SensorModel.h
-├── Simulator_Ubuntu/
-│   ├── main.c
+├── Zephyr_qt_bridge/
+│   ├── src/
+│   │    ├── main.c
+│   ├── app.overlay
+│   ├── bridge.py
+│   ├── CMakeLists.txt
+│   ├── prj.conf
 ├── .gitignore               
 └── README.md                # Project documentation
 ```
