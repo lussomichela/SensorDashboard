@@ -9,7 +9,7 @@ int main(int argc, char *argv[])
 
     QQmlApplicationEngine engine;
 
-    static SensorModel sensorBackend;
+    static Dashboard sensorBackend;
 
     engine.rootContext()->setContextProperty("backend", &sensorBackend);
 

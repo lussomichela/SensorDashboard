@@ -36,6 +36,8 @@ qt_add_qml_module(appSensorDashboard
     RESOURCES
         gauge_needle.png
         Gauge.png
+        gauge_speed.png
+        gauge_rpm.png
 )
 
 target_include_directories(appSensorDashboard PRIVATE

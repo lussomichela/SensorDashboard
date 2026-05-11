@@ -2,62 +2,52 @@
 #define SENSORMODEL_H
 
 #include <QObject>
-#include <QTcpServer>
-#include <QTcpSocket>
+#include <QFile>
+#include <Qdebug>
+#include <QSocketNotifier>
+
 
 #pragma pack(1)
 typedef struct {
-    float temperature;
-    float humidity;
-    float pressure;
-    float airQuality;
-    float lightLevel;
-} SensorPayload;
+    uint16_t speed;            /* 2 byte */
+    uint16_t rpm;              /* 2 byte */
+    uint8_t engine_fault;      /* 1 byte */
+    uint8_t oil_temperature;   /* 1 byte */
+} rpmsg_can_frame_t;
 #pragma pack()
 
-class SensorModel : public QObject {
+class Dashboard : public QObject {
     Q_OBJECT
 
-    Q_PROPERTY(float temperature READ temperature NOTIFY temperatureChanged)
-    Q_PROPERTY(float humidity READ humidity NOTIFY humidityChanged)
-    Q_PROPERTY(float pressure READ pressure NOTIFY pressureChanged)
-    Q_PROPERTY(float airQuality READ airQuality NOTIFY airQualityChanged)
-    Q_PROPERTY(float lightLevel READ lightLevel NOTIFY lightLevelChanged)
+    Q_PROPERTY(float speed READ speed NOTIFY speedChanged)
+    Q_PROPERTY(float rpm READ rpm NOTIFY rpmChanged)
+
 
 public:
-    explicit SensorModel(QObject *parent = nullptr);
+    explicit Dashboard(QObject *parent = nullptr);
 
-    float temperature() const { return m_temperature; }
-    float humidity() const { return m_humidity; }
-    float pressure() const { return m_pressure; }
-    float airQuality() const { return m_airQuality; }
-    float lightLevel() const { return m_lightLevel; }
+    float speed() const { return m_speed; }
+    float rpm() const { return m_rpm; }
+
 
 private slots:
-    void onDataReceived();
+    void onDeviceReadyRead();
 
 private:
-    QTcpServer* m_tcpServer;
-    QTcpSocket* m_clientSocket;
+    QFile* m_rpmsgDevice;
+    QSocketNotifier* m_notifier;
 
-    float m_temperature = 0;
-    float m_humidity = 0;
-    float m_pressure = 0;
-    float m_airQuality = 0;
-    float m_lightLevel = 0;
+    float m_speed = 0;
+    float m_rpm = 0;
 
-    void updateTemperature(float v);
-    void updateHumidity(float v);
-    void updatePressure(float v);
-    void updateairQuality(float v);
-    void updatelightLevel(float v);
+    void updatespeed(float v);
+    void updaterpm(float v);
+
 
 signals:
-    void temperatureChanged();
-    void humidityChanged();
-    void pressureChanged();
-    void airQualityChanged();
-    void lightLevelChanged();
+    void speedChanged();
+    void rpmChanged();
+
 };
 
 #endif

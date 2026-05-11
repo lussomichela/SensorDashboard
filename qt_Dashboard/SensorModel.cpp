@@ -1,94 +1,61 @@
 #include "SensorModel.h"
-#include <QTimer>
+#include <QFile>       /* For file operation */
+#include <QTextStream> /* For text streaming */
+#include <Qdebug>      /* for debugging messages */
+#include <QSocketNotifier>
 
-SensorModel::SensorModel(QObject *parent) : QObject(parent) {
-    m_tcpServer = new QTcpServer(this);
-    m_clientSocket = nullptr;
 
-    if (!m_tcpServer->listen(QHostAddress::Any, 1234)) {
-        qDebug() << "Server Error:" << m_tcpServer->errorString();
-    } else {
-        qDebug() << "Listening on port 1234...";
+Dashboard::Dashboard(QObject *parent) : QObject(parent) {
+    m_rpmsgDevice = new QFile("/dev/rpmsg0",this );  /* open the rpmsg created on linux */
+
+    if(!m_rpmsgDevice->open(QIODevice::ReadOnly)){ /* allows reading */
+        qDebug() << " Error opening RPMsg device " << m_rpmsgDevice->errorString(); /* provides details */
+    }else {
+        qDebug() << "Connected to /dev/rpmsg0 ";
     }
 
-    connect(m_tcpServer, &QTcpServer::newConnection, this, [this]() {
-        m_clientSocket = m_tcpServer->nextPendingConnection();
-        qDebug() << ">>> Bridge Connected";
+    /* QSocketNotifier monitor the file descriptor /dev/rpmsg0 for readability.
+     When the condition you're watching for happens, it emits the activated() signal.
+     - parent the notifier: set "this" as the parent to auto-delete the notifier when the parent (QObject subclass) is destroyed */
+    m_notifier = new QSocketNotifier(m_rpmsgDevice->handle(), QSocketNotifier::Read, this);
 
-        connect(m_clientSocket, &QTcpSocket::readyRead, this, &SensorModel::onDataReceived);
+    /* Connect QSocketNotifier::activated(int fd) to a slot that reads data from the device */
+    connect(m_notifier, &QSocketNotifier::activated, this, &Dashboard::onDeviceReadyRead);
 
-        connect(m_clientSocket, &QTcpSocket::disconnected, this, [this]() {
-            qDebug() << ">>> Bridge Disconnected";
-            m_clientSocket->deleteLater();
-            m_clientSocket = nullptr;
-        });
-    });
 }
 
+/* In the slot, read data form the device using readAll() */
+void Dashboard::onDeviceReadyRead() {
 
-void SensorModel::onDataReceived() {
-    if (!m_clientSocket) return;
+    /* Read the payload available on the file descriptor's queue (6 bytes buffer) */
+    QByteArray buffer = m_rpmsgDevice->readAll();
 
-    while (m_clientSocket->canReadLine()) {
-        QByteArray line = m_clientSocket->readLine().trimmed();
-        QString dataString = QString::fromUtf8(line);
+    if (buffer.size() < (int)sizeof(rpmsg_can_frame_t)){
 
-        if (dataString.startsWith("DATA|")) {
-            QStringList parts = dataString.split('|');
+        const rpmsg_can_frame_t *data = reinterpret_cast<const rpmsg_can_frame_t*>(buffer.constData());
 
-            if (parts.size() >= 6) {
-                bool ok;
-                float Temperature = parts[1].toFloat(&ok);
-                float Humidity = parts[2].toFloat();
-                float Pressure = parts[3].toFloat();
-                float airQuality = parts[4].toFloat();
-                float lightLevel = parts[5].toFloat();
+        /* Update the values */
+        updatespeed(data ->speed);
+        updaterpm (data -> rpm);
 
-                if (ok) {
-                    qDebug() << "Temperature:" << Temperature << "Humidity:" << Humidity << "Pressure:" << Pressure << "airQuality:" << airQuality << "lightLevel:" << lightLevel;
-                    updateTemperature(Temperature);
-                    updateHumidity(Humidity);
-                    updatePressure(Pressure);
-                    updateairQuality(airQuality);
-                    updatelightLevel(lightLevel);
-                }
-            }
-        }
+        qDebug() << "Data received | Speed:" << data->speed << "rpm:" <<data->rpm ;
     }
 }
 
-void SensorModel::updateTemperature(float newValue) {
-    if (m_temperature != newValue) {
-        m_temperature = newValue;
-        emit temperatureChanged();
+
+
+void Dashboard::updatespeed(float newValue) {
+    if (m_speed != newValue) {
+        m_speed = newValue;
+        emit speedChanged();
     }
 }
 
-void SensorModel::updateHumidity(float newValue) {
-    if (m_humidity != newValue) {
-        m_humidity = newValue;
-        emit humidityChanged();
+void Dashboard::updaterpm(float newValue) {
+    if (m_rpm != newValue) {
+        m_rpm = newValue;
+        emit rpmChanged();
     }
 }
 
-void SensorModel::updatePressure(float newValue) {
-    if (m_pressure != newValue) {
-        m_pressure = newValue;
-        emit pressureChanged();
-    }
-}
-
-void SensorModel::updateairQuality(float newValue) {
-    if (m_airQuality != newValue) {
-        m_airQuality = newValue;
-        emit airQualityChanged();
-    }
-}
-
-void SensorModel::updatelightLevel(float newValue) {
-    if (m_lightLevel != newValue) {
-        m_lightLevel = newValue;
-        emit lightLevelChanged();
-    }
-}
 
