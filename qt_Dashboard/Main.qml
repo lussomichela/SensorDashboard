@@ -1,6 +1,5 @@
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Layouts
 
 Window {
     id: window
@@ -10,107 +9,78 @@ Window {
     title: qsTr("Automotive Dashboard")
     color: "#000000"
 
-    //Component
-    component GaugeWidget : Item {
-        id: root
+    component Needle : Image {
+        id: needleImage
         property real value: 0
-        property real min: 0
-        property real max: 100
-        property string title: ""
-        property string unit: ""
-        property string dialSource: ""
+        property real minValue: 0
+        property real maxValue: 100
+        property real startAngle: -140
+        property real endAngle: 140
 
-        width: 350; height: 350
+        fillMode: Image.PreserveAspectFit
+        antialiasing: true
+        smooth: true
 
-
-        Image{
-            id: dialImage
-            source:root.dialSource
-            anchors.fill: parent
-            smooth: true
-            antialiasing: true
-            fillMode: Image.PreserveAspectFit
-        }
-
-        //angle for the needle
-        function getAngle(val) {
-            let startAngle = -140; // start angle
-            let endAngle = 140;    // end
-            let clampedVal = Math.max(root.min, Math.min(root.max, val));
-            let ratio = (clampedVal - root.min) / (root.max - root.min);
+        rotation: {
+            let ratio = (Math.max(minValue, Math.min(maxValue, value)) - minValue) / (maxValue - minValue);
             return startAngle + (ratio * (endAngle - startAngle));
         }
 
+        transformOrigin: Item.Center
 
-        // NEEDLE
-         Image {
-            id: needle
-            source: "gauge_needle.png"
-            height: parent.height * 0.45
-            fillMode: Image.PreserveAspectFit
-            anchors.horizontalCenter: parent.horizontalCenter
-            anchors.bottom: parent.verticalCenter
-            antialiasing: true
-
-            transformOrigin: Item.Bottom
-
-            rotation: root.getAngle(root.value)
-
-            Behavior on rotation {
-                SpringAnimation {
-                    spring: 2.5;
-                    damping: 0.7;
-                    mass: 1.0
-                }
+        Behavior on rotation {
+            SpringAnimation {
+                spring: 2.5
+                damping: 0.7
+                mass: 1.0
             }
         }
-
-        Rectangle {
-            width: 40; height: 40; radius: 20
-            color: "#111111"
-            border.color: "#333333"
-            border.width: 2
-            anchors.centerIn: parent
-        }
-
-        // TITLE
-        /*Column {
-            anchors.bottom: parent.bottom; anchors.bottomMargin: 50
-            anchors.horizontalCenter: parent.horizontalCenter
-            spacing: 2
-
-            Text {
-                text: root.title
-                color: "#AAAAAA"
-                font.pixelSize: 14; font.bold: true; font.letterSpacing: 2
-                anchors.horizontalCenter: parent.horizontalCenter
-            }
-
-        }*/
     }
 
-    //DASHBOARD
-     Row {
+    // dashboard
+    Image {
+        id: dashboardBase
+        source: "Dashboard2.png"
         anchors.centerIn: parent
-        spacing: 80
+        width: parent.width * 0.95
+        fillMode: Image.PreserveAspectFit
 
-        GaugeWidget {
-            //title: "RPM"
-            min: 0
-            max: 8
-            dialSource: "gauge_rpm.png"
-            value: backend.rpm
+        // rpm
+        Item {
+            id: rpm
+            x: parent.width * 0.146
+            y: parent.height * 0.680
+            width: 1; height: 1
+
+            Needle {
+                id: rpmNeedle
+                source: "needle_red.png"
+                height: dashboardBase.height / 3.4
+                anchors.centerIn: parent
+
+                minValue: 0
+                maxValue: 80
+                value: backend.rpm
+            }
         }
 
-        GaugeWidget {
-            //title: "SPEED"
-            min: 0
-            max: 260
-            dialSource: "gauge_speed.png"
-            value: backend.speed
+        // speed
+        Item {
+            id: speed
+            x: parent.width * 0.763
+            y: parent.height * 0.680
+            width: 1; height: 1
+
+            Needle {
+                id: speedNeedle
+                source: "needle_white.png"
+                height: dashboardBase.height / 3.4
+                anchors.centerIn: parent
+
+                minValue: 0
+                maxValue: 240
+                value: backend.speed
+            }
         }
-
-
-
     }
 }

@@ -34,10 +34,10 @@ qt_add_qml_module(appSensorDashboard
         SensorModel.h
         SensorModel.cpp
     RESOURCES
-        gauge_needle.png
-        Gauge.png
-        gauge_speed.png
-        gauge_rpm.png
+        Dashboard.png
+        Dashboard2.png
+        needle_white.png
+        needle_red.png
 )
 
 target_include_directories(appSensorDashboard PRIVATE
