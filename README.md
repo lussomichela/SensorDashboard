@@ -1,23 +1,30 @@
-# SensorDashboard
-Environmental Sensor Dashboard
+# Sensor Dashboard 
+
+
 
 ```text
-├── MQTT_Simulator/          # Python Hardware Simulation
-│   ├── simulator.py         # Data generation logic
-│   └── MqttGateway.py       # MQTT Gateway
-├── qt_Dashboard/            # C++/QML Desktop Application
-│   ├── CMakeLists.txt  
-│   ├── IMessageBus.cpp        
-│   ├── IMessageBus.h        # Abstract Message Bus Interface
-│   ├── main.cpp        
-│   └── Main.qml             # Frontend UI definitions
-│   ├── MqttMessageBus.h     # MQTT Implementation
-│   ├── MqttMessageBus.cpp   
-│   ├── RpmsgMessageBus.h   
-│   ├── SensorModel.cpp      # Sensor data management logic
-│   ├── SensorModel.h
-├── Simulator_Ubuntu/
-│   ├── main.c
-├── .gitignore               
-└── README.md                # Project documentation
-```
+SensorDashboard/
+├── CMakeLists.txt              
+│
+└── appSensorDashboard/        
+    │
+    ├── Header Files/           
+    │   ├── LedModel.h         
+    │   ├── RPMsg.h            
+    │   └── SpeedometerModel.h  
+    │
+    ├── Resources/              
+    │   ├── Dashboard3.png      
+    │   ├── led_engine_off_r.png
+    │   ├── led_engine_on_r.png 
+    │   ├── led_oil_off_r.png   
+    │   ├── led_oil_on_r.png    
+    │   ├── needle_red.png      
+    │   └── needle_white.png    
+    │
+    └── Source Files/           
+        ├── LedModel.cpp         
+        ├── main.cpp             
+        ├── Main.qml            
+        ├── RPMsg.cpp            
+        └── SpeedometerModel.cpp 
